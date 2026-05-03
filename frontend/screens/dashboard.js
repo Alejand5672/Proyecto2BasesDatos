@@ -1,6 +1,16 @@
 export function renderDashboard({ state, money, statusPill, $ }) {
   const dashboard = state.dashboard;
 
+  if (state.loading) {
+    $("#metricsGrid").innerHTML = `
+      <article class="metric-card"><span class="metric-label">Cargando</span><strong>...</strong><small>Consultando la base de datos</small></article>
+    `;
+    $("#salesByCategoryChart").innerHTML = '<p class="empty-state">Cargando ventas...</p>';
+    $("#activityList").innerHTML = '<li><strong>Cargando</strong><small>Consultando movimientos.</small></li>';
+    $("#lowStockRows").innerHTML = '<tr><td colspan="5">Cargando inventario...</td></tr>';
+    return;
+  }
+
   $("#metricsGrid").innerHTML = [
     ["Ventas registradas", money(dashboard.salesTotal), `${dashboard.purchaseCount} compras registradas`],
     ["Productos activos", dashboard.productCount, "Catalogo conectado a la base de datos"],

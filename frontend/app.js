@@ -25,6 +25,8 @@ const state = {
     topClients: [],
   },
   suppliers: [],
+  user: null,
+  loading: true,
   productFilter: "todos",
   search: "",
 };
@@ -69,8 +71,15 @@ async function api(path, options = {}) {
   return data;
 }
 
+function setAuthenticated(user) {
+  state.user = user;
+  document.body.classList.toggle("authenticated", Boolean(user));
+}
+
 async function loadData() {
   try {
+    state.loading = true;
+    renderApp();
     const [catalogs, products, purchases, dashboard, reports, suppliers] = await Promise.all([
       api("/api/catalogs"),
       api("/api/products"),
@@ -88,12 +97,26 @@ async function loadData() {
     state.dashboard = dashboard;
     state.reports = reports;
     state.suppliers = suppliers;
+    state.loading = false;
     renderApp();
     clearProductForm();
     clearPurchaseForm();
   } catch (error) {
-    showToast(`Backend no disponible: ${error.message}`);
+    state.loading = false;
+    if (error.message.includes("iniciar sesion")) {
+      setAuthenticated(null);
+    } else {
+      showToast(`Backend no disponible: ${error.message}`);
+    }
     renderApp();
+  }
+}
+
+async function checkSession() {
+  const { user } = await api("/api/auth/me");
+  setAuthenticated(user);
+  if (user) {
+    await loadData();
   }
 }
 
@@ -228,6 +251,32 @@ async function handlePurchaseSubmit(event) {
   }
 }
 
+async function handleLogin(event) {
+  event.preventDefault();
+  $("#loginError").textContent = "";
+
+  try {
+    const { user } = await api("/api/auth/login", {
+      method: "POST",
+      body: JSON.stringify({
+        username: $("#loginUser").value,
+        password: $("#loginPassword").value,
+      }),
+    });
+    setAuthenticated(user);
+    showToast(`Bienvenido, ${user.nombre}.`);
+    await loadData();
+  } catch (error) {
+    $("#loginError").textContent = error.message;
+  }
+}
+
+async function handleLogout() {
+  await api("/api/auth/logout", { method: "POST" });
+  setAuthenticated(null);
+  showToast("Sesion cerrada.");
+}
+
 function editProduct(id) {
   const product = state.products.find((item) => item.id === Number(id));
   if (!product) return;
@@ -293,6 +342,8 @@ function bindEvents() {
   });
 
   $("#menuButton").addEventListener("click", () => document.body.classList.toggle("sidebar-open"));
+  $("#loginForm").addEventListener("submit", handleLogin);
+  $("#logoutButton").addEventListener("click", handleLogout);
   $("#productForm").addEventListener("submit", handleProductSubmit);
   $("#purchaseForm").addEventListener("submit", handlePurchaseSubmit);
   $("#clearProductForm").addEventListener("click", clearProductForm);
@@ -322,4 +373,4 @@ function bindEvents() {
 renderApp();
 bindEvents();
 setRoute(location.hash.replace("#", "") || "dashboard");
-loadData();
+checkSession();

@@ -7,6 +7,26 @@
     <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
+    <section class="login-screen" id="loginScreen">
+      <form class="login-panel" id="loginForm" novalidate>
+        <span class="brand-mark">IP</span>
+        <div>
+          <p class="eyebrow">Acceso al sistema</p>
+          <h1>Inventario Proy2</h1>
+        </div>
+        <label>
+          Usuario
+          <input id="loginUser" type="text" value="admin" autocomplete="username" required />
+        </label>
+        <label>
+          Contraseña
+          <input id="loginPassword" type="password" value="secret" autocomplete="current-password" required />
+        </label>
+        <p class="form-error" id="loginError" role="alert"></p>
+        <button class="primary-button" type="submit">Entrar</button>
+      </form>
+    </section>
+
     <div class="app-shell">
       <aside class="sidebar" aria-label="Navegacion principal">
         <a class="brand" href="#dashboard" data-nav="dashboard">
@@ -61,6 +81,7 @@
               <span aria-hidden="true">Buscar</span>
               <input id="globalSearch" type="search" placeholder="Producto, categoria o proveedor" />
             </label>
+            <button class="ghost-button" type="button" id="logoutButton">Salir</button>
           </div>
         </header>
 

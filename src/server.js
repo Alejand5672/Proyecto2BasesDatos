@@ -1,5 +1,7 @@
 import cors from "cors";
+import crypto from "node:crypto";
 import express from "express";
+import session from "express-session";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { pool, query } from "./db.js";
@@ -12,6 +14,19 @@ const frontendPath = path.join(__dirname, "..", "frontend");
 
 app.use(cors());
 app.use(express.json());
+app.use(
+  session({
+    name: "proyecto2.sid",
+    secret: process.env.SESSION_SECRET || "proyecto2-secret",
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      httpOnly: true,
+      sameSite: "lax",
+      maxAge: 1000 * 60 * 60 * 2,
+    },
+  })
+);
 app.use(express.static(frontendPath));
 
 function asyncRoute(handler) {
@@ -24,10 +39,58 @@ function asyncRoute(handler) {
   };
 }
 
+function hashPassword(password) {
+  return crypto.createHash("sha256").update(password).digest("hex");
+}
+
+function requireAuth(req, res, next) {
+  if (req.session.user) {
+    next();
+    return;
+  }
+  res.status(401).json({ message: "Debes iniciar sesion para continuar." });
+}
+
 app.get("/api/health", asyncRoute(async (_req, res) => {
   await query("select 1");
   res.json({ ok: true });
 }));
+
+app.get("/api/auth/me", (req, res) => {
+  res.json({ user: req.session.user || null });
+});
+
+app.post("/api/auth/login", asyncRoute(async (req, res) => {
+  const { username, password } = req.body;
+  if (!username || !password) {
+    return res.status(400).json({ message: "Ingresa usuario y contraseña." });
+  }
+
+  const rows = await query(
+    `
+      select id_usuario as id, nombre, usuario
+      from app_usuario
+      where usuario = $1 and password_hash = $2
+    `,
+    [username.trim(), hashPassword(password)]
+  );
+
+  if (rows.length === 0) {
+    return res.status(401).json({ message: "Credenciales incorrectas." });
+  }
+
+  req.session.user = rows[0];
+  res.json({ user: rows[0] });
+}));
+
+app.post("/api/auth/logout", (req, res) => {
+  req.session.destroy(() => {
+    res.clearCookie("proyecto2.sid");
+    res.json({ ok: true });
+  });
+});
+
+app.use("/api", requireAuth);
 
 app.get("/api/catalogs", asyncRoute(async (_req, res) => {
   const [categories, clients, employees] = await Promise.all([
