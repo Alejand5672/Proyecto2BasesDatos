@@ -1,6 +1,5 @@
-export function renderSuppliers({ getSuppliers, money, $ }) {
-  $("#supplierGrid").innerHTML = getSuppliers()
-    .slice(0, 12)
+export function renderSuppliers({ state, money, $ }) {
+  $("#supplierGrid").innerHTML = state.suppliers
     .map(
       (item) => `
         <article class="supplier-card">

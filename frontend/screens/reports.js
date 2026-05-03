@@ -1,33 +1,25 @@
-export function renderReports({ state, reportRequirements, money, getSuppliers, $ }) {
-  $("#reportCards").innerHTML = reportRequirements
+export function renderReports({ state, money, $ }) {
+  $("#reportCards").innerHTML = (state.reports.cards || [])
     .map(
-      ([tag, title, text]) => `
+      (card) => `
         <article class="report-card">
-          <span class="query-tag">${tag}</span>
-          <h3>${title}</h3>
-          <p>${text}</p>
+          <span class="report-tag">${card.value}</span>
+          <h3>${card.title}</h3>
+          <p>${card.detail}</p>
         </article>
       `
     )
-    .join("");
+    .join("") || '<article class="report-card"><h3>Sin datos</h3><p>Conecta la base de datos para ver reportes.</p></article>';
 
-  const suppliers = getSuppliers();
-  $("#reportRows").innerHTML = state.purchases
-    .slice()
-    .sort((a, b) => b.quantity * b.price - a.quantity * a.price)
-    .slice(0, 8)
-    .map((purchase) => {
-      const product = state.products.find((item) => item.id === Number(purchase.productId));
-      const supplier = suppliers.find((item) => item.product === product?.name);
-      return `
+  $("#reportRows").innerHTML = (state.reports.topProducts || [])
+    .map((product) => `
         <tr>
-          <td>${product?.name || "Sin producto"}</td>
-          <td>${product?.category || "Sin categoria"}</td>
-          <td>${purchase.quantity}</td>
-          <td>${money(purchase.quantity * purchase.price)}</td>
-          <td>${supplier?.supplier || "Pendiente"}</td>
+          <td>${product.producto}</td>
+          <td>${product.categoria}</td>
+          <td>${product.unidades}</td>
+          <td>${money(product.total)}</td>
+          <td>Registrado</td>
         </tr>
-      `;
-    })
-    .join("");
+      `)
+    .join("") || '<tr><td colspan="5">Sin ventas para mostrar.</td></tr>';
 }

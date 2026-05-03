@@ -1,0 +1,52 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: proyecto2bd
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./db/init/00_create_user.sql:/docker-entrypoint-initdb.d/00_create_user.sql:ro
+      - ./avacnesproyecto2.sql:/docker-entrypoint-initdb.d/01_schema_data.sql:ro
+      - ./db/extras.sql:/docker-entrypoint-initdb.d/02_views.sql:ro
+      - ./db/init/99_permissions.sql:/docker-entrypoint-initdb.d/99_permissions.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d proyecto2bd"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build: .
+    environment:
+      PORT: 3000
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_NAME: proyecto2bd
+      DB_USER: proy2
+      DB_PASSWORD: secret
+    ports:
+      - "3000:3000"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  pgadmin:
+    image: dpage/pgadmin4:8
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@proyecto.com
+      PGADMIN_DEFAULT_PASSWORD: secret
+    ports:
+      - "5050:80"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
+  pgadmin_data:

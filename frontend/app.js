@@ -4,97 +4,27 @@ import { renderPurchases } from "./screens/purchases.js";
 import { renderReports } from "./screens/reports.js";
 import { renderSuppliers } from "./screens/suppliers.js";
 
-const categories = [
-  "Electronica",
-  "Ropa",
-  "Alimentos",
-  "Hogar",
-  "Deportes",
-  "Juguetes",
-  "Libros",
-  "Belleza",
-  "Automotriz",
-  "Mascotas",
-  "Tecnologia",
-  "Oficina",
-  "Salud",
-  "Accesorios",
-  "Calzado",
-  "Herramientas",
-  "Jardin",
-  "Musica",
-  "Videojuegos",
-  "Bebidas",
-  "Panaderia",
-  "Lacteos",
-  "Carnes",
-  "Frutas",
-  "Verduras",
-];
-
-const clients = [
-  "Juan Perez",
-  "Maria Lopez",
-  "Carlos Ruiz",
-  "Ana Gomez",
-  "Luis Torres",
-  "Pedro Ramirez",
-  "Sofia Morales",
-  "Diego Castillo",
-  "Laura Flores",
-  "Jose Cruz",
-];
-
-const employees = ["Ana", "Luis", "Pedro", "Sofia", "Carlos", "Maria", "Jorge", "Laura"];
-
-const movements = [
-  { type: "Entrada", product: "Producto 25", detail: "Compra proveedor - 35 unidades" },
-  { type: "Salida", product: "Producto 24", detail: "Venta - 4 unidades" },
-  { type: "Entrada", product: "Producto 23", detail: "Reposicion - 27 unidades" },
-  { type: "Salida", product: "Producto 22", detail: "Venta - 5 unidades" },
-];
-
-const reportRequirements = [
-  ["JOIN", "Ventas por producto y categoria", "Producto, categoria, cantidad vendida, total facturado y empleado."],
-  ["SUBQUERY", "Productos bajo el promedio de stock", "Detecta inventario con menor disponibilidad."],
-  ["GROUP BY + HAVING", "Categorias con ventas mayores a Q 25", "Agrupa ventas por categoria y filtra con HAVING."],
-  ["CTE", "Ranking de clientes por consumo", "WITH para calcular totales por cliente antes de ordenar."],
-  ["VIEW", "Vista de resumen de ventas", "El backend podra alimentar esta tabla desde una vista SQL."],
-  ["TRANSACCION", "Compra con actualizacion de stock", "Flujo preparado para BEGIN, COMMIT y ROLLBACK."],
-];
-
-const sqlSnippet = `WITH ventas_cliente AS (
-  SELECT c.id_cliente, c.nombre, SUM(dc.cantidad * dc.precio_venta) AS total
-  FROM cliente c
-  JOIN compra co ON co.id_cliente = c.id_cliente
-  JOIN detalle_compra dc ON dc.id_compra = co.id_compra
-  GROUP BY c.id_cliente, c.nombre
-)
-SELECT * FROM ventas_cliente ORDER BY total DESC;`;
-
 const state = {
-  products: Array.from({ length: 25 }, (_, index) => ({
-    id: index + 1,
-    name: `Producto ${index + 1}`,
-    category: categories[index],
-    price: [
-      10.5, 20, 5.75, 15.3, 50, 8.9, 12.4, 22.1, 18.6, 30, 9.99, 14.25, 7.8,
-      11, 60, 16.4, 13.5, 19.99, 25, 6.75, 4.5, 3.8, 12.6, 2.9, 1.5,
-    ][index],
-    stock: [
-      100, 80, 200, 60, 40, 150, 90, 70, 55, 45, 110, 95, 120, 130, 20, 75, 85,
-      65, 50, 140, 160, 170, 95, 180, 200,
-    ][index],
-  })),
-  purchases: Array.from({ length: 10 }, (_, index) => ({
-    id: index + 1,
-    date: `2024-01-${String(index + 1).padStart(2, "0")}`,
-    client: clients[index],
-    employee: employees[index % employees.length],
-    productId: index + 1,
-    quantity: [2, 1, 3, 2, 1, 4, 2, 1, 2, 1][index],
-    price: [11, 21, 6, 16, 55, 9.5, 13, 23, 19.5, 32][index],
-  })),
+  categories: [],
+  clients: [],
+  employees: [],
+  products: [],
+  purchases: [],
+  dashboard: {
+    productCount: 0,
+    purchaseCount: 0,
+    salesTotal: 0,
+    criticalStock: 0,
+    salesByCategory: [],
+    lowStock: [],
+    movements: [],
+  },
+  reports: {
+    cards: [],
+    topProducts: [],
+    topClients: [],
+  },
+  suppliers: [],
   productFilter: "todos",
   search: "",
 };
@@ -112,7 +42,7 @@ function showToast(message) {
   toast.textContent = message;
   toast.classList.add("show");
   window.clearTimeout(showToast.timer);
-  showToast.timer = window.setTimeout(() => toast.classList.remove("show"), 2400);
+  showToast.timer = window.setTimeout(() => toast.classList.remove("show"), 2600);
 }
 
 function statusPill(stock) {
@@ -121,18 +51,50 @@ function statusPill(stock) {
   return '<span class="pill neutral">Normal</span>';
 }
 
-function fillSelect(select, options, getValue = (item) => item, getLabel = (item) => item) {
+function fillSelect(select, options, getValue = (item) => item.id, getLabel = (item) => item.nombre || item.name) {
   select.innerHTML = options
     .map((item) => `<option value="${getValue(item)}">${getLabel(item)}</option>`)
     .join("");
 }
 
-function getSuppliers() {
-  return state.products.map((product) => ({
-    product: product.name,
-    supplier: `Proveedor ${String.fromCharCode(64 + ((product.id - 1) % 25) + 1)}`,
-    buyPrice: Math.max(product.price * 0.78, 1).toFixed(2),
-  }));
+async function api(path, options = {}) {
+  const response = await fetch(path, {
+    headers: { "Content-Type": "application/json" },
+    ...options,
+  });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    throw new Error(data.message || "No se pudo completar la operacion.");
+  }
+  return data;
+}
+
+async function loadData() {
+  try {
+    const [catalogs, products, purchases, dashboard, reports, suppliers] = await Promise.all([
+      api("/api/catalogs"),
+      api("/api/products"),
+      api("/api/purchases"),
+      api("/api/dashboard"),
+      api("/api/reports"),
+      api("/api/suppliers"),
+    ]);
+
+    state.categories = catalogs.categories;
+    state.clients = catalogs.clients;
+    state.employees = catalogs.employees;
+    state.products = products;
+    state.purchases = purchases;
+    state.dashboard = dashboard;
+    state.reports = reports;
+    state.suppliers = suppliers;
+    renderApp();
+    clearProductForm();
+    clearPurchaseForm();
+  } catch (error) {
+    showToast(`Backend no disponible: ${error.message}`);
+    renderApp();
+  }
 }
 
 function getFilteredProducts() {
@@ -146,42 +108,12 @@ function getFilteredProducts() {
   });
 }
 
-function salesByCategory() {
-  const totals = new Map();
-  state.purchases.forEach((purchase) => {
-    const product = state.products.find((item) => item.id === Number(purchase.productId));
-    if (!product) return;
-    totals.set(product.category, (totals.get(product.category) || 0) + purchase.quantity * purchase.price);
-  });
-
-  return Array.from(totals, ([category, total]) => ({ category, total }))
-    .sort((a, b) => b.total - a.total)
-    .slice(0, 5);
-}
-
-function lowStockProducts() {
-  const average =
-    state.products.reduce((sum, product) => sum + Number(product.stock), 0) / state.products.length;
-  return state.products
-    .filter((product) => product.stock < average)
-    .sort((a, b) => a.stock - b.stock)
-    .slice(0, 6);
-}
-
 function renderApp() {
   const context = {
     state,
-    categories,
-    clients,
-    employees,
-    movements,
-    reportRequirements,
     money,
     statusPill,
     getFilteredProducts,
-    getSuppliers,
-    salesByCategory,
-    lowStockProducts,
     $,
   };
 
@@ -194,9 +126,9 @@ function renderApp() {
 }
 
 function refreshFormOptions() {
-  fillSelect($("#productCategory"), categories);
-  fillSelect($("#purchaseClient"), clients);
-  fillSelect($("#purchaseEmployee"), employees);
+  fillSelect($("#productCategory"), state.categories);
+  fillSelect($("#purchaseClient"), state.clients);
+  fillSelect($("#purchaseEmployee"), state.employees);
   fillSelect(
     $("#purchaseProduct"),
     state.products,
@@ -209,7 +141,7 @@ function clearProductForm() {
   $("#productId").value = "";
   $("#productFormTitle").textContent = "Crear producto";
   $("#productName").value = "";
-  $("#productCategory").value = categories[0];
+  $("#productCategory").value = state.categories[0]?.id || "";
   $("#productPrice").value = "";
   $("#productStock").value = "";
   $("#productError").textContent = "";
@@ -218,8 +150,8 @@ function clearProductForm() {
 function clearPurchaseForm() {
   $("#purchaseId").value = "";
   $("#purchaseFormTitle").textContent = "Registrar compra";
-  $("#purchaseClient").value = clients[0] || "";
-  $("#purchaseEmployee").value = employees[0] || "";
+  $("#purchaseClient").value = state.clients[0]?.id || "";
+  $("#purchaseEmployee").value = state.employees[0]?.id || "";
   $("#purchaseProduct").value = state.products[0]?.id || "";
   $("#purchaseQuantity").value = 1;
   $("#purchasePrice").value = state.products[0]?.price || "";
@@ -237,82 +169,63 @@ function setRoute(route) {
   document.body.classList.remove("sidebar-open");
 }
 
-function handleProductSubmit(event) {
+async function handleProductSubmit(event) {
   event.preventDefault();
   const id = Number($("#productId").value);
-  const name = $("#productName").value.trim();
-  const category = $("#productCategory").value;
-  const price = Number($("#productPrice").value);
-  const stock = Number($("#productStock").value);
+  const payload = {
+    name: $("#productName").value.trim(),
+    categoryId: Number($("#productCategory").value),
+    price: Number($("#productPrice").value),
+    stock: Number($("#productStock").value),
+  };
 
-  if (!name || !category || Number.isNaN(price) || price <= 0 || Number.isNaN(stock) || stock < 0) {
+  if (!payload.name || !payload.categoryId || payload.price <= 0 || payload.stock < 0) {
     $("#productError").textContent = "Revisa nombre, categoria, precio y stock antes de guardar.";
     return;
   }
 
-  if (id) {
-    state.products = state.products.map((product) =>
-      product.id === id ? { ...product, name, category, price, stock } : product
-    );
-    showToast("Producto actualizado.");
-  } else {
-    state.products.push({
-      id: Math.max(0, ...state.products.map((product) => product.id)) + 1,
-      name,
-      category,
-      price,
-      stock,
-    });
-    showToast("Producto creado.");
+  try {
+    if (id) {
+      await api(`/api/products/${id}`, { method: "PUT", body: JSON.stringify(payload) });
+      showToast("Producto actualizado.");
+    } else {
+      await api("/api/products", { method: "POST", body: JSON.stringify(payload) });
+      showToast("Producto creado.");
+    }
+    await loadData();
+  } catch (error) {
+    $("#productError").textContent = error.message;
   }
-
-  clearProductForm();
-  renderApp();
 }
 
-function handlePurchaseSubmit(event) {
+async function handlePurchaseSubmit(event) {
   event.preventDefault();
   const id = Number($("#purchaseId").value);
-  const client = $("#purchaseClient").value;
-  const employee = $("#purchaseEmployee").value;
-  const productId = Number($("#purchaseProduct").value);
-  const quantity = Number($("#purchaseQuantity").value);
-  const price = Number($("#purchasePrice").value);
-  const product = state.products.find((item) => item.id === productId);
+  const payload = {
+    clientId: Number($("#purchaseClient").value),
+    employeeId: Number($("#purchaseEmployee").value),
+    productId: Number($("#purchaseProduct").value),
+    quantity: Number($("#purchaseQuantity").value),
+    price: Number($("#purchasePrice").value),
+  };
 
-  if (!client || !employee || !product || quantity < 1 || price <= 0) {
+  if (!payload.clientId || !payload.employeeId || !payload.productId || payload.quantity < 1 || payload.price <= 0) {
     $("#purchaseError").textContent = "Completa cliente, empleado, producto, cantidad y precio valido.";
     return;
   }
 
-  if (!id && product.stock < quantity) {
-    $("#purchaseError").textContent = "No hay stock suficiente. En backend esto debe hacer ROLLBACK.";
-    return;
+  try {
+    if (id) {
+      await api(`/api/purchases/${id}`, { method: "PUT", body: JSON.stringify(payload) });
+      showToast("Compra actualizada.");
+    } else {
+      await api("/api/purchases", { method: "POST", body: JSON.stringify(payload) });
+      showToast("Compra guardada y stock actualizado.");
+    }
+    await loadData();
+  } catch (error) {
+    $("#purchaseError").textContent = error.message;
   }
-
-  if (id) {
-    state.purchases = state.purchases.map((purchase) =>
-      purchase.id === id ? { ...purchase, client, employee, productId, quantity, price } : purchase
-    );
-    showToast("Compra actualizada.");
-  } else {
-    state.purchases.push({
-      id: Math.max(0, ...state.purchases.map((purchase) => purchase.id)) + 1,
-      date: new Date().toISOString().slice(0, 10),
-      client,
-      employee,
-      productId,
-      quantity,
-      price,
-    });
-    state.products = state.products.map((item) =>
-      item.id === productId ? { ...item, stock: item.stock - quantity } : item
-    );
-    showToast("Compra guardada y stock actualizado.");
-  }
-
-  clearPurchaseForm();
-  renderApp();
 }
 
 function editProduct(id) {
@@ -321,7 +234,7 @@ function editProduct(id) {
   $("#productId").value = product.id;
   $("#productFormTitle").textContent = "Editar producto";
   $("#productName").value = product.name;
-  $("#productCategory").value = product.category;
+  $("#productCategory").value = product.categoryId;
   $("#productPrice").value = product.price;
   $("#productStock").value = product.stock;
   $("#productError").textContent = "";
@@ -333,8 +246,8 @@ function editPurchase(id) {
   if (!purchase) return;
   $("#purchaseId").value = purchase.id;
   $("#purchaseFormTitle").textContent = "Editar compra";
-  $("#purchaseClient").value = purchase.client;
-  $("#purchaseEmployee").value = purchase.employee;
+  $("#purchaseClient").value = purchase.clientId;
+  $("#purchaseEmployee").value = purchase.employeeId;
   $("#purchaseProduct").value = purchase.productId;
   $("#purchaseQuantity").value = purchase.quantity;
   $("#purchasePrice").value = purchase.price;
@@ -342,7 +255,7 @@ function editPurchase(id) {
 }
 
 function bindEvents() {
-  document.addEventListener("click", (event) => {
+  document.addEventListener("click", async (event) => {
     const navItem = event.target.closest("[data-nav]");
     if (navItem) {
       event.preventDefault();
@@ -355,11 +268,13 @@ function bindEvents() {
 
     const productDelete = event.target.closest("[data-delete-product]");
     if (productDelete) {
-      const id = Number(productDelete.dataset.deleteProduct);
-      state.products = state.products.filter((product) => product.id !== id);
-      state.purchases = state.purchases.filter((purchase) => purchase.productId !== id);
-      renderApp();
-      showToast("Producto eliminado de la vista.");
+      try {
+        await api(`/api/products/${productDelete.dataset.deleteProduct}`, { method: "DELETE" });
+        showToast("Producto eliminado.");
+        await loadData();
+      } catch (error) {
+        showToast(error.message);
+      }
     }
 
     const purchaseEdit = event.target.closest("[data-edit-purchase]");
@@ -367,11 +282,13 @@ function bindEvents() {
 
     const purchaseDelete = event.target.closest("[data-delete-purchase]");
     if (purchaseDelete) {
-      state.purchases = state.purchases.filter(
-        (purchase) => purchase.id !== Number(purchaseDelete.dataset.deletePurchase)
-      );
-      renderApp();
-      showToast("Compra eliminada de la vista.");
+      try {
+        await api(`/api/purchases/${purchaseDelete.dataset.deletePurchase}`, { method: "DELETE" });
+        showToast("Compra eliminada y stock restaurado.");
+        await loadData();
+      } catch (error) {
+        showToast(error.message);
+      }
     }
   });
 
@@ -382,10 +299,6 @@ function bindEvents() {
   $("#clearPurchaseForm").addEventListener("click", clearPurchaseForm);
   $("#newProductButton").addEventListener("click", clearProductForm);
   $("#newPurchaseButton").addEventListener("click", clearPurchaseForm);
-  $("#copySqlButton").addEventListener("click", async () => {
-    await navigator.clipboard.writeText(sqlSnippet);
-    showToast("Consulta CTE copiada.");
-  });
 
   $("#globalSearch").addEventListener("input", (event) => {
     state.search = event.target.value;
@@ -407,7 +320,6 @@ function bindEvents() {
 }
 
 renderApp();
-clearProductForm();
-clearPurchaseForm();
 bindEvents();
 setRoute(location.hash.replace("#", "") || "dashboard");
+loadData();

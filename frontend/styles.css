@@ -411,7 +411,7 @@ a {
 }
 
 .pill,
-.query-tag {
+.report-tag {
   width: max-content;
   border-radius: 999px;
   padding: 5px 9px;
@@ -562,7 +562,7 @@ select:focus {
   box-shadow: none;
 }
 
-.query-tag {
+.report-tag {
   display: inline-flex;
   margin-bottom: 12px;
   background: var(--accent-soft);

@@ -1,11 +1,11 @@
 export function renderPurchases({ state, money, $ }) {
   $("#purchaseRows").innerHTML = state.purchases
     .map((purchase) => {
-      const total = purchase.quantity * purchase.price;
+      const total = purchase.total || purchase.quantity * purchase.price;
       return `
         <tr>
           <td>${purchase.id}</td>
-          <td>${purchase.date}</td>
+          <td>${String(purchase.fecha || purchase.date).slice(0, 10)}</td>
           <td>${purchase.client}</td>
           <td>${purchase.employee}</td>
           <td>${money(total)}</td>

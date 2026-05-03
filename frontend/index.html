@@ -31,8 +31,8 @@
             Compras
           </a>
           <a class="nav-item" href="#reportes" data-nav="reportes">
-            <span class="icon" aria-hidden="true">SQL</span>
-            Reportes SQL
+            <span class="icon" aria-hidden="true">RP</span>
+            Reportes
           </a>
           <a class="nav-item" href="#proveedores" data-nav="proveedores">
             <span class="icon" aria-hidden="true">PV</span>
@@ -71,10 +71,10 @@
             <section class="panel sales-panel">
               <div class="panel-header">
                 <div>
-                  <p class="eyebrow">Reporte visible</p>
+                  <p class="eyebrow">Resumen de ventas</p>
                   <h2>Ventas por categoria</h2>
                 </div>
-                <span class="panel-badge">GROUP BY</span>
+                <span class="panel-badge">Actualizado</span>
               </div>
               <div class="bar-chart" id="salesByCategoryChart" aria-label="Grafica de ventas por categoria"></div>
             </section>
@@ -93,8 +93,8 @@
           <section class="panel">
             <div class="panel-header">
               <div>
-                <p class="eyebrow">Subquery</p>
-                <h2>Inventario bajo el promedio</h2>
+                <p class="eyebrow">Seguimiento</p>
+                <h2>Inventario que necesita atencion</h2>
               </div>
               <a class="text-link" href="#productos" data-nav="productos">Ver catalogo</a>
             </div>
@@ -120,7 +120,7 @@
             <section class="panel">
               <div class="panel-header">
                 <div>
-                  <p class="eyebrow">CRUD 1</p>
+                  <p class="eyebrow">Catalogo</p>
                   <h2>Catalogo de productos</h2>
                 </div>
                 <button class="primary-button" type="button" id="newProductButton">Nuevo producto</button>
@@ -189,7 +189,7 @@
             <section class="panel">
               <div class="panel-header">
                 <div>
-                  <p class="eyebrow">CRUD 2</p>
+                  <p class="eyebrow">Ventas</p>
                   <h2>Compras registradas</h2>
                 </div>
                 <button class="primary-button" type="button" id="newPurchaseButton">Nueva compra</button>
@@ -214,7 +214,7 @@
             <section class="panel form-panel">
               <div class="panel-header">
                 <div>
-                  <p class="eyebrow">BEGIN / COMMIT / ROLLBACK</p>
+                  <p class="eyebrow">Registro de venta</p>
                   <h2 id="purchaseFormTitle">Registrar compra</h2>
                 </div>
               </div>
@@ -252,14 +252,13 @@
           </div>
         </section>
 
-        <section class="view" id="reportes" data-title="Reportes SQL">
+        <section class="view" id="reportes" data-title="Reportes">
           <section class="panel">
             <div class="panel-header">
               <div>
-                <p class="eyebrow">Consultas visibles desde la UI</p>
-                <h2>Requisitos SQL del proyecto</h2>
+                <p class="eyebrow">Analisis de la tienda</p>
+                <h2>Reportes principales</h2>
               </div>
-              <button class="ghost-button" type="button" id="copySqlButton">Copiar CTE</button>
             </div>
             <div class="report-grid" id="reportCards"></div>
           </section>
@@ -267,7 +266,7 @@
           <section class="panel">
             <div class="panel-header">
               <div>
-                <p class="eyebrow">JOIN + VIEW</p>
+                <p class="eyebrow">Ventas</p>
                 <h2>Top productos vendidos</h2>
               </div>
             </div>
@@ -292,7 +291,7 @@
           <section class="panel">
             <div class="panel-header">
               <div>
-                <p class="eyebrow">Relacion many-to-many</p>
+                <p class="eyebrow">Abastecimiento</p>
                 <h2>Proveedor por producto</h2>
               </div>
             </div>

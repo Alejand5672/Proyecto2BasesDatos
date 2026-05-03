@@ -1,12 +1,11 @@
-export function renderDashboard({ state, movements, money, statusPill, salesByCategory, lowStockProducts, $ }) {
-  const salesTotal = state.purchases.reduce((sum, purchase) => sum + purchase.quantity * purchase.price, 0);
-  const lowStockCount = state.products.filter((product) => product.stock < 60).length;
+export function renderDashboard({ state, money, statusPill, $ }) {
+  const dashboard = state.dashboard;
 
   $("#metricsGrid").innerHTML = [
-    ["Ventas registradas", money(salesTotal), `${state.purchases.length} compras en datos de prueba`],
-    ["Productos activos", state.products.length, `${new Set(state.products.map((p) => p.category)).size} categorias`],
-    ["Stock critico", lowStockCount, "Productos con menos de 60 unidades", "warning"],
-    ["CRUD requeridos", "2", "Productos y compras"],
+    ["Ventas registradas", money(dashboard.salesTotal), `${dashboard.purchaseCount} compras registradas`],
+    ["Productos activos", dashboard.productCount, "Catalogo conectado a la base de datos"],
+    ["Stock critico", dashboard.criticalStock, "Productos con menos de 60 unidades", "warning"],
+    ["Secciones activas", "2", "Productos y compras"],
   ]
     .map(
       ([label, value, help, tone]) => `
@@ -19,7 +18,7 @@ export function renderDashboard({ state, movements, money, statusPill, salesByCa
     )
     .join("");
 
-  const categorySales = salesByCategory();
+  const categorySales = dashboard.salesByCategory || [];
   const max = Math.max(...categorySales.map((item) => item.total), 1);
   $("#salesByCategoryChart").innerHTML = categorySales
     .map(
@@ -30,9 +29,9 @@ export function renderDashboard({ state, movements, money, statusPill, salesByCa
         </div>
       `
     )
-    .join("");
+    .join("") || "<p class=\"empty-state\">Sin ventas registradas todavia.</p>";
 
-  $("#activityList").innerHTML = movements
+  $("#activityList").innerHTML = (dashboard.movements || [])
     .map(
       (movement) => `
         <li>
@@ -42,9 +41,9 @@ export function renderDashboard({ state, movements, money, statusPill, salesByCa
         </li>
       `
     )
-    .join("");
+    .join("") || "<li><strong>Sin movimientos</strong><small>Registra compras para ver actividad.</small></li>";
 
-  $("#lowStockRows").innerHTML = lowStockProducts()
+  $("#lowStockRows").innerHTML = (dashboard.lowStock || [])
     .map(
       (product) => `
         <tr>
@@ -56,5 +55,5 @@ export function renderDashboard({ state, movements, money, statusPill, salesByCa
         </tr>
       `
     )
-    .join("");
+    .join("") || '<tr><td colspan="5">No hay productos bajo seguimiento.</td></tr>';
 }
