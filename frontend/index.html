@@ -16,14 +16,15 @@
         </div>
         <label>
           Usuario
-          <input id="loginUser" type="text" value="admin" autocomplete="username" required />
+          <input id="loginUser" type="text" placeholder="user" autocomplete="username" required />
         </label>
         <label>
           Contraseña
-          <input id="loginPassword" type="password" value="secret" autocomplete="current-password" required />
+          <input id="loginPassword" type="password" placeholder="contraseña" autocomplete="current-password" required />
         </label>
         <p class="form-error" id="loginError" role="alert"></p>
         <button class="primary-button" type="submit">Entrar</button>
+        <button class="text-button" type="button" id="createAccountButton">Crear cuenta</button>
       </form>
     </section>
 
@@ -59,14 +60,6 @@
             Proveedores
           </a>
         </nav>
-
-        <div class="sidebar-card">
-          <span class="status-dot"></span>
-          <div>
-            <strong>Conexion esperada</strong>
-            <small>proy2 / secret</small>
-          </div>
-        </div>
       </aside>
 
       <main class="main">
@@ -222,6 +215,8 @@
                       <th>ID</th>
                       <th>Fecha</th>
                       <th>Cliente</th>
+                      <th>Producto</th>
+                      <th>Cantidad</th>
                       <th>Empleado</th>
                       <th>Total</th>
                       <th></th>
@@ -284,28 +279,7 @@
             <div class="report-grid" id="reportCards"></div>
           </section>
 
-          <section class="panel">
-            <div class="panel-header">
-              <div>
-                <p class="eyebrow">Ventas</p>
-                <h2>Top productos vendidos</h2>
-              </div>
-            </div>
-            <div class="table-wrap">
-              <table>
-                <thead>
-                  <tr>
-                    <th>Producto</th>
-                    <th>Categoria</th>
-                    <th>Unidades</th>
-                    <th>Total</th>
-                    <th>Proveedor</th>
-                  </tr>
-                </thead>
-                <tbody id="reportRows"></tbody>
-              </table>
-            </div>
-          </section>
+          <div class="report-sections" id="reportSections"></div>
         </section>
 
         <section class="view" id="proveedores" data-title="Proveedores">
@@ -323,6 +297,6 @@
     </div>
 
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
-    <script type="module" src="./app.js"></script>
+    <script type="module" src="./app.js?v=2"></script>
   </body>
 </html>

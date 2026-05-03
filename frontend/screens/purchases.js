@@ -7,6 +7,8 @@ export function renderPurchases({ state, money, $ }) {
           <td>${purchase.id}</td>
           <td>${String(purchase.fecha || purchase.date).slice(0, 10)}</td>
           <td>${purchase.client}</td>
+          <td>${purchase.product}</td>
+          <td>${purchase.quantity}</td>
           <td>${purchase.employee}</td>
           <td>${money(total)}</td>
           <td>

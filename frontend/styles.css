@@ -260,7 +260,8 @@ a {
 .primary-button,
 .ghost-button,
 .icon-button,
-.chip {
+.chip,
+.text-button {
   border-radius: var(--radius);
   border: 1px solid transparent;
   min-height: 40px;
@@ -283,6 +284,12 @@ a {
   background: var(--surface);
   border-color: var(--line);
   color: var(--ink);
+}
+
+.text-button {
+  background: transparent;
+  color: var(--accent);
+  padding: 0;
 }
 
 .icon-button {
@@ -595,6 +602,17 @@ select:focus {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 12px;
+}
+
+.report-sections {
+  display: grid;
+  gap: 18px;
+}
+
+.panel-detail {
+  display: block;
+  margin-top: 6px;
+  color: var(--muted);
 }
 
 .report-card {

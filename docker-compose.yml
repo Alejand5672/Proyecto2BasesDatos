@@ -2,20 +2,25 @@ services:
   db:
     image: postgres:16-alpine
     environment:
-      POSTGRES_DB: proyecto2bd
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${POSTGRES_ADMIN_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_ADMIN_PASSWORD}
+      DB_NAME: ${DB_NAME}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      APP_LOGIN_USER: ${APP_LOGIN_USER}
+      APP_LOGIN_PASSWORD: ${APP_LOGIN_PASSWORD}
     ports:
-      - "5432:5432"
+      - "${DB_PORT}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./db/init/00_create_user.sql:/docker-entrypoint-initdb.d/00_create_user.sql:ro
+      - ./db/init/00_create_user.sh:/docker-entrypoint-initdb.d/00_create_user.sh:ro
       - ./avacnesproyecto2.sql:/docker-entrypoint-initdb.d/01_schema_data.sql:ro
       - ./db/extras.sql:/docker-entrypoint-initdb.d/02_views.sql:ro
-      - ./db/auth.sql:/docker-entrypoint-initdb.d/03_auth.sql:ro
-      - ./db/init/99_permissions.sql:/docker-entrypoint-initdb.d/99_permissions.sql:ro
+      - ./db/init/03_auth.sh:/docker-entrypoint-initdb.d/03_auth.sh:ro
+      - ./db/init/99_permissions.sh:/docker-entrypoint-initdb.d/99_permissions.sh:ro
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d proyecto2bd"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_ADMIN_USER} -d ${DB_NAME}"]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -23,15 +28,15 @@ services:
   backend:
     build: .
     environment:
-      PORT: 3000
+      PORT: ${PORT}
       DB_HOST: db
       DB_PORT: 5432
-      DB_NAME: proyecto2bd
-      DB_USER: proy2
-      DB_PASSWORD: secret
-      SESSION_SECRET: proyecto2-session-secret
+      DB_NAME: ${DB_NAME}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      SESSION_SECRET: ${SESSION_SECRET}
     ports:
-      - "3000:3000"
+      - "${PORT}:${PORT}"
     depends_on:
       db:
         condition: service_healthy
@@ -39,10 +44,10 @@ services:
   pgadmin:
     image: dpage/pgadmin4:8
     environment:
-      PGADMIN_DEFAULT_EMAIL: admin@proyecto.com
-      PGADMIN_DEFAULT_PASSWORD: secret
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
     ports:
-      - "5050:80"
+      - "${PGADMIN_PORT}:80"
     volumes:
       - pgadmin_data:/var/lib/pgadmin
     depends_on:

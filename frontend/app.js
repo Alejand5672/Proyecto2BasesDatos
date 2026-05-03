@@ -99,6 +99,7 @@ async function loadData() {
     state.suppliers = suppliers;
     state.loading = false;
     renderApp();
+    setRoute(location.hash.replace("#", "") || "dashboard");
     clearProductForm();
     clearPurchaseForm();
   } catch (error) {
@@ -277,6 +278,10 @@ async function handleLogout() {
   showToast("Sesion cerrada.");
 }
 
+function handleCreateAccount() {
+  $("#loginError").textContent = "Las credenciales son: usuario: proy2, contraseña: secret";
+}
+
 function editProduct(id) {
   const product = state.products.find((item) => item.id === Number(id));
   if (!product) return;
@@ -342,7 +347,9 @@ function bindEvents() {
   });
 
   $("#menuButton").addEventListener("click", () => document.body.classList.toggle("sidebar-open"));
+  window.addEventListener("hashchange", () => setRoute(location.hash.replace("#", "") || "dashboard"));
   $("#loginForm").addEventListener("submit", handleLogin);
+  $("#createAccountButton").addEventListener("click", handleCreateAccount);
   $("#logoutButton").addEventListener("click", handleLogout);
   $("#productForm").addEventListener("submit", handleProductSubmit);
   $("#purchaseForm").addEventListener("submit", handlePurchaseSubmit);

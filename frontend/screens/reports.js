@@ -11,15 +11,39 @@ export function renderReports({ state, money, $ }) {
     )
     .join("") || '<article class="report-card"><h3>Sin datos</h3><p>Conecta la base de datos para ver reportes.</p></article>';
 
-  $("#reportRows").innerHTML = (state.reports.topProducts || [])
-    .map((product) => `
-        <tr>
-          <td>${product.producto}</td>
-          <td>${product.categoria}</td>
-          <td>${product.unidades}</td>
-          <td>${money(product.total)}</td>
-          <td>Registrado</td>
-        </tr>
-      `)
-    .join("") || '<tr><td colspan="5">Sin ventas para mostrar.</td></tr>';
+  $("#reportSections").innerHTML = (state.reports.sections || [])
+    .map(
+      (section) => `
+        <section class="panel">
+          <div class="panel-header">
+            <div>
+              <p class="eyebrow">Reporte</p>
+              <h2>${section.title}</h2>
+              <small class="panel-detail">${section.detail}</small>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>${section.columns.map((column) => `<th>${column}</th>`).join("")}</tr>
+              </thead>
+              <tbody>
+                ${
+                  section.rows.length
+                    ? section.rows.map((row) => `<tr>${row.map((value, index) => `<td>${formatCell(value, section.columns[index], money)}</td>`).join("")}</tr>`).join("")
+                    : `<tr><td colspan="${section.columns.length}">Sin datos para mostrar.</td></tr>`
+                }
+              </tbody>
+            </table>
+          </div>
+        </section>
+      `
+    )
+    .join("");
+}
+
+function formatCell(value, column, money) {
+  const moneyColumns = ["Total", "Costo", "Precio", "Promedio categoria"];
+  if (typeof value === "number" && moneyColumns.includes(column)) return money(value);
+  return value ?? "";
 }
