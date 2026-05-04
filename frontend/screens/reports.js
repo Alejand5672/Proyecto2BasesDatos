@@ -9,7 +9,7 @@ export function renderReports({ state, money, $ }) {
         </article>
       `
     )
-    .join("") || '<article class="report-card"><h3>Sin datos</h3><p>Conecta la base de datos para ver reportes.</p></article>';
+    .join("") || '<article class="report-card"><h3>Sin datos</h3><p>Aun no hay informacion para reportes.</p></article>';
 
   $("#reportSections").innerHTML = (state.reports.sections || [])
     .map(

@@ -3,7 +3,7 @@ export function renderDashboard({ state, money, statusPill, $ }) {
 
   if (state.loading) {
     $("#metricsGrid").innerHTML = `
-      <article class="metric-card"><span class="metric-label">Cargando</span><strong>...</strong><small>Consultando la base de datos</small></article>
+      <article class="metric-card"><span class="metric-label">Cargando</span><strong>...</strong><small>Preparando resumen</small></article>
     `;
     $("#salesByCategoryChart").innerHTML = '<p class="empty-state">Cargando ventas...</p>';
     $("#activityList").innerHTML = '<li><strong>Cargando</strong><small>Consultando movimientos.</small></li>';
@@ -13,9 +13,9 @@ export function renderDashboard({ state, money, statusPill, $ }) {
 
   $("#metricsGrid").innerHTML = [
     ["Ventas registradas", money(dashboard.salesTotal), `${dashboard.purchaseCount} compras registradas`],
-    ["Productos activos", dashboard.productCount, "Catalogo conectado a la base de datos"],
+    ["Productos activos", dashboard.productCount, "Productos disponibles en catalogo"],
     ["Stock critico", dashboard.criticalStock, "Productos con menos de 60 unidades", "warning"],
-    ["Secciones activas", "2", "Productos y compras"],
+    ["CRUD implementados", "2", "Productos y compras"],
   ]
     .map(
       ([label, value, help, tone]) => `
