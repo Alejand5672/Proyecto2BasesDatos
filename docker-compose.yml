@@ -1,6 +1,8 @@
 services:
   db:
-    image: postgres:16-alpine
+    build:
+      context: .
+      dockerfile: db/Dockerfile
     environment:
       POSTGRES_DB: ${DB_NAME}
       POSTGRES_USER: ${POSTGRES_ADMIN_USER}
@@ -14,11 +16,6 @@ services:
       - "${DB_PORT}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./db/init/00_create_user.sh:/docker-entrypoint-initdb.d/00_create_user.sh:ro
-      - ./avacnesproyecto2.sql:/docker-entrypoint-initdb.d/01_schema_data.sql:ro
-      - ./db/extras.sql:/docker-entrypoint-initdb.d/02_views.sql:ro
-      - ./db/init/03_auth.sh:/docker-entrypoint-initdb.d/03_auth.sh:ro
-      - ./db/init/99_permissions.sh:/docker-entrypoint-initdb.d/99_permissions.sh:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_ADMIN_USER} -d ${DB_NAME}"]
       interval: 5s
