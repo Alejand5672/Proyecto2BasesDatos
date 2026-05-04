@@ -1,0 +1,80 @@
+<section class="view" id="productos" data-title="Productos">
+  <div class="split-layout">
+    <section class="panel">
+      <div class="panel-header">
+        <div>
+          <p class="eyebrow">Catalogo</p>
+          <h2>Catalogo de productos</h2>
+        </div>
+        <button class="primary-button" type="button" id="newProductButton">Nuevo producto</button>
+      </div>
+      <div class="filters">
+        <button class="chip active" type="button" data-filter="todos">Todos</button>
+        <button class="chip" type="button" data-filter="bajo">Stock bajo</button>
+        <button class="chip" type="button" data-filter="alto">Stock alto</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Producto</th>
+              <th>Categoria</th>
+              <th>Proveedor</th>
+              <th>Stock</th>
+              <th>Compra</th>
+              <th>Venta</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="productRows"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="panel form-panel" id="productFormPanel">
+      <div class="panel-header">
+        <div>
+          <p class="eyebrow">Validaciones visibles</p>
+          <h2 id="productFormTitle">Crear producto</h2>
+        </div>
+      </div>
+      <form id="productForm" novalidate>
+        <input type="hidden" id="productId" />
+        <label>
+          Nombre
+          <input id="productName" type="text" placeholder="Producto 26" required />
+        </label>
+        <label>
+          Categoria
+          <select id="productCategory" required></select>
+        </label>
+        <label>
+          Proveedor
+          <select id="productSupplier" required></select>
+        </label>
+        <div class="form-grid">
+          <label>
+            Precio compra
+            <input id="productBuyPrice" type="number" min="0.01" step="0.01" placeholder="9.75" required />
+          </label>
+          <label>
+            Precio venta
+            <input id="productPrice" type="number" min="0.01" step="0.01" placeholder="12.50" required />
+          </label>
+        </div>
+        <div class="form-grid">
+          <label>
+            Stock
+            <input id="productStock" type="number" min="0" step="1" placeholder="100" required />
+          </label>
+        </div>
+        <p class="form-error" id="productError" role="alert"></p>
+        <div class="form-actions">
+          <button class="primary-button" type="submit">Guardar</button>
+          <button class="ghost-button" type="button" id="clearProductForm">Limpiar</button>
+        </div>
+      </form>
+    </section>
+  </div>
+</section>

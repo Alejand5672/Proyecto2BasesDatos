@@ -6,7 +6,9 @@ export function renderProducts({ getFilteredProducts, money, $ }) {
           <td>${product.id}</td>
           <td><strong>${product.name}</strong></td>
           <td>${product.category}</td>
+          <td>${product.supplier || "Sin proveedor"}</td>
           <td>${product.stock}</td>
+          <td>${money(product.buyPrice)}</td>
           <td>${money(product.price)}</td>
           <td>
             <div class="row-actions">
@@ -20,5 +22,5 @@ export function renderProducts({ getFilteredProducts, money, $ }) {
     .join("");
 
   $("#productRows").innerHTML =
-    rows || '<tr><td colspan="6">No hay productos que coincidan con la busqueda.</td></tr>';
+    rows || '<tr><td colspan="8">No hay productos que coincidan con la busqueda.</td></tr>';
 }

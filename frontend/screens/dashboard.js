@@ -33,13 +33,31 @@ export function renderDashboard({ state, money, statusPill, $ }) {
   $("#salesByCategoryChart").innerHTML = categorySales
     .map(
       (item) => `
-        <div style="--value: ${(item.total / max) * 100}">
-          <span>${item.category}</span>
-          <strong>${money(item.total)}</strong>
-        </div>
+        <article class="sales-category-row" style="--value: ${(item.total / max) * 100}">
+          <span class="sales-category-name">${item.category}</span>
+          <span class="sales-category-track" aria-hidden="true">
+            <span class="sales-category-bar"></span>
+          </span>
+          <strong class="sales-category-total">${money(item.total)}</strong>
+        </article>
       `
     )
-    .join("") || "<p class=\"empty-state\">Sin ventas registradas todavia.</p>";
+    .join("") || `
+      <article class="sales-category-row empty">
+        <span class="sales-category-name">Sin ventas</span>
+        <span class="sales-category-track" aria-hidden="true">
+          <span class="sales-category-bar"></span>
+        </span>
+        <strong class="sales-category-total">${money(0)}</strong>
+      </article>
+    `;
+
+  $("#salesByCategoryChart").innerHTML += `
+    <div class="sales-category-summary">
+      <span>Total general</span>
+      <strong>${money(dashboard.salesTotal)}</strong>
+    </div>
+  `;
 
   $("#activityList").innerHTML = (dashboard.movements || [])
     .map(

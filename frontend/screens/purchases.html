@@ -1,0 +1,69 @@
+<section class="view" id="compras" data-title="Compras">
+  <div class="split-layout">
+    <section class="panel">
+      <div class="panel-header">
+        <div>
+          <p class="eyebrow">Ventas</p>
+          <h2>Compras registradas</h2>
+        </div>
+        <button class="primary-button" type="button" id="newPurchaseButton">Nueva compra</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Fecha</th>
+              <th>Cliente</th>
+              <th>Producto</th>
+              <th>Cantidad</th>
+              <th>Empleado</th>
+              <th>Total</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="purchaseRows"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="panel form-panel">
+      <div class="panel-header">
+        <div>
+          <p class="eyebrow">Registro de venta</p>
+          <h2 id="purchaseFormTitle">Registrar compra</h2>
+        </div>
+      </div>
+      <form id="purchaseForm" novalidate>
+        <input type="hidden" id="purchaseId" />
+        <label>
+          Cliente
+          <select id="purchaseClient" required></select>
+        </label>
+        <label>
+          Empleado
+          <select id="purchaseEmployee" required></select>
+        </label>
+        <label>
+          Producto
+          <select id="purchaseProduct" required></select>
+        </label>
+        <div class="form-grid">
+          <label>
+            Cantidad
+            <input id="purchaseQuantity" type="number" min="1" step="1" value="1" required />
+          </label>
+          <label>
+            Precio venta
+            <input id="purchasePrice" type="number" min="0.01" step="0.01" required />
+          </label>
+        </div>
+        <p class="form-error" id="purchaseError" role="alert"></p>
+        <div class="form-actions">
+          <button class="primary-button" type="submit">Guardar compra</button>
+          <button class="ghost-button" type="button" id="clearPurchaseForm">Limpiar</button>
+        </div>
+      </form>
+    </section>
+  </div>
+</section>

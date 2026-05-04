@@ -17,6 +17,12 @@ export const sql = {
     order by nombre
   `,
 
+  suppliers: `
+    select id_proveedor as id, nombre
+    from proveedor
+    order by nombre
+  `,
+
   products: `
     select
       p.id_producto as id,
@@ -24,9 +30,20 @@ export const sql = {
       p.precio_base::float as price,
       p.stock,
       c.id_categoria as "categoryId",
-      c.nombre as category
+      c.nombre as category,
+      ps.id_proveedor as "supplierId",
+      ps.nombre as supplier,
+      ps.precio_compra::float as "buyPrice"
     from producto p
     join categoria c on c.id_categoria = p.id_categoria
+    left join lateral (
+      select pp.id_proveedor, pr.nombre, pp.precio_compra
+      from producto_proveedor pp
+      join proveedor pr on pr.id_proveedor = pp.id_proveedor
+      where pp.id_producto = p.id_producto
+      order by pp.id_proveedor
+      limit 1
+    ) ps on true
     order by p.id_producto
   `,
 

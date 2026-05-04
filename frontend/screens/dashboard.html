@@ -1,0 +1,50 @@
+<section class="view active" id="dashboard" data-title="Inicio">
+  <div class="metrics-grid" id="metricsGrid"></div>
+
+  <div class="dashboard-grid">
+    <section class="panel sales-panel">
+      <div class="panel-header">
+        <div>
+          <p class="eyebrow">Resumen de ventas</p>
+          <h2>Ventas por categoria</h2>
+        </div>
+        <span class="panel-badge">Actualizado</span>
+      </div>
+      <div class="bar-chart" id="salesByCategoryChart" aria-label="Grafica de ventas por categoria"></div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-header">
+        <div>
+          <p class="eyebrow">Stock</p>
+          <h2>Movimientos recientes</h2>
+        </div>
+      </div>
+      <ul class="activity-list" id="activityList"></ul>
+    </section>
+  </div>
+
+  <section class="panel">
+    <div class="panel-header">
+      <div>
+        <p class="eyebrow">Seguimiento</p>
+        <h2>Inventario que necesita atencion</h2>
+      </div>
+      <a class="text-link" href="/productos" data-nav="productos">Ver catalogo</a>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Producto</th>
+            <th>Categoria</th>
+            <th>Stock</th>
+            <th>Precio base</th>
+            <th>Estado</th>
+          </tr>
+        </thead>
+        <tbody id="lowStockRows"></tbody>
+      </table>
+    </div>
+  </section>
+</section>

@@ -8,6 +8,7 @@ const state = {
   categories: [],
   clients: [],
   employees: [],
+  catalogSuppliers: [],
   products: [],
   purchases: [],
   dashboard: {
@@ -34,6 +35,27 @@ const state = {
 const formatter = new Intl.NumberFormat("es-GT", { style: "currency", currency: "GTQ" });
 const $ = (selector, parent = document) => parent.querySelector(selector);
 const $$ = (selector, parent = document) => Array.from(parent.querySelectorAll(selector));
+const screenFiles = [
+  "/screens/dashboard.html",
+  "/screens/products.html",
+  "/screens/purchases.html",
+  "/screens/reports.html",
+  "/screens/suppliers.html",
+];
+const defaultRoute = "dashboard";
+const validRoutes = ["dashboard", "productos", "compras", "reportes", "proveedores"];
+
+async function mountScreens() {
+  const screens = await Promise.all(
+    screenFiles.map(async (file) => {
+      const response = await fetch(file);
+      if (!response.ok) throw new Error(`No se pudo cargar ${file}`);
+      return response.text();
+    })
+  );
+
+  $("#viewsRoot").innerHTML = screens.join("");
+}
 
 function money(value) {
   return formatter.format(Number(value || 0)).replace("GTQ", "Q");
@@ -76,6 +98,24 @@ function setAuthenticated(user) {
   document.body.classList.toggle("authenticated", Boolean(user));
 }
 
+function getCurrentRoute() {
+  const route = location.pathname.replace(/^\/+/, "") || defaultRoute;
+  return validRoutes.includes(route) ? route : defaultRoute;
+}
+
+function getRoutePath(route) {
+  return route === defaultRoute ? "/dashboard" : `/${route}`;
+}
+
+function normalizeRoutePath() {
+  const route = getCurrentRoute();
+  const expectedPath = getRoutePath(route);
+  if (location.pathname !== expectedPath) {
+    history.replaceState(null, "", expectedPath);
+  }
+  return route;
+}
+
 async function loadData() {
   try {
     state.loading = true;
@@ -92,6 +132,7 @@ async function loadData() {
     state.categories = catalogs.categories;
     state.clients = catalogs.clients;
     state.employees = catalogs.employees;
+    state.catalogSuppliers = catalogs.suppliers;
     state.products = products;
     state.purchases = purchases;
     state.dashboard = dashboard;
@@ -99,7 +140,7 @@ async function loadData() {
     state.suppliers = suppliers;
     state.loading = false;
     renderApp();
-    setRoute(location.hash.replace("#", "") || "dashboard");
+    setRoute(getCurrentRoute());
     clearProductForm();
     clearPurchaseForm();
   } catch (error) {
@@ -127,7 +168,7 @@ function getFilteredProducts() {
       state.productFilter === "todos" ||
       (state.productFilter === "bajo" && product.stock < 60) ||
       (state.productFilter === "alto" && product.stock > 140);
-    const searchable = `${product.name} ${product.category}`.toLowerCase();
+    const searchable = `${product.name} ${product.category} ${product.supplier || ""}`.toLowerCase();
     return matchesFilter && searchable.includes(state.search.toLowerCase());
   });
 }
@@ -151,6 +192,7 @@ function renderApp() {
 
 function refreshFormOptions() {
   fillSelect($("#productCategory"), state.categories);
+  fillSelect($("#productSupplier"), state.catalogSuppliers);
   fillSelect($("#purchaseClient"), state.clients);
   fillSelect($("#purchaseEmployee"), state.employees);
   fillSelect(
@@ -166,6 +208,8 @@ function clearProductForm() {
   $("#productFormTitle").textContent = "Crear producto";
   $("#productName").value = "";
   $("#productCategory").value = state.categories[0]?.id || "";
+  $("#productSupplier").value = state.catalogSuppliers[0]?.id || "";
+  $("#productBuyPrice").value = "";
   $("#productPrice").value = "";
   $("#productStock").value = "";
   $("#productError").textContent = "";
@@ -183,7 +227,7 @@ function clearPurchaseForm() {
 }
 
 function setRoute(route) {
-  const target = route || "dashboard";
+  const target = validRoutes.includes(route) ? route : defaultRoute;
   $$(".view").forEach((view) => view.classList.toggle("active", view.id === target));
   $$(".nav-item, .text-link, .brand").forEach((item) =>
     item.classList.toggle("active", item.dataset.nav === target)
@@ -199,12 +243,21 @@ async function handleProductSubmit(event) {
   const payload = {
     name: $("#productName").value.trim(),
     categoryId: Number($("#productCategory").value),
+    supplierId: Number($("#productSupplier").value),
+    buyPrice: Number($("#productBuyPrice").value),
     price: Number($("#productPrice").value),
     stock: Number($("#productStock").value),
   };
 
-  if (!payload.name || !payload.categoryId || payload.price <= 0 || payload.stock < 0) {
-    $("#productError").textContent = "Revisa nombre, categoria, precio y stock antes de guardar.";
+  if (
+    !payload.name ||
+    !payload.categoryId ||
+    !payload.supplierId ||
+    payload.buyPrice <= 0 ||
+    payload.price <= 0 ||
+    payload.stock < 0
+  ) {
+    $("#productError").textContent = "Revisa nombre, categoria, proveedor, precios y stock antes de guardar.";
     return;
   }
 
@@ -278,10 +331,6 @@ async function handleLogout() {
   showToast("Sesion cerrada.");
 }
 
-function handleCreateAccount() {
-  $("#loginError").textContent = "Las credenciales son: usuario: proy2, contraseña: secret";
-}
-
 function editProduct(id) {
   const product = state.products.find((item) => item.id === Number(id));
   if (!product) return;
@@ -289,6 +338,8 @@ function editProduct(id) {
   $("#productFormTitle").textContent = "Editar producto";
   $("#productName").value = product.name;
   $("#productCategory").value = product.categoryId;
+  $("#productSupplier").value = product.supplierId || state.catalogSuppliers[0]?.id || "";
+  $("#productBuyPrice").value = product.buyPrice || "";
   $("#productPrice").value = product.price;
   $("#productStock").value = product.stock;
   $("#productError").textContent = "";
@@ -308,12 +359,16 @@ function editPurchase(id) {
   $("#purchaseError").textContent = "";
 }
 
+function showCreateAccountCredentials() {
+  $("#loginError").textContent = "Las credenciales son: usuario: proy2, contraseña: secret";
+}
+
 function bindEvents() {
   document.addEventListener("click", async (event) => {
     const navItem = event.target.closest("[data-nav]");
     if (navItem) {
       event.preventDefault();
-      history.replaceState(null, "", `#${navItem.dataset.nav}`);
+      history.pushState(null, "", getRoutePath(navItem.dataset.nav));
       setRoute(navItem.dataset.nav);
     }
 
@@ -347,9 +402,9 @@ function bindEvents() {
   });
 
   $("#menuButton").addEventListener("click", () => document.body.classList.toggle("sidebar-open"));
-  window.addEventListener("hashchange", () => setRoute(location.hash.replace("#", "") || "dashboard"));
+  window.addEventListener("popstate", () => setRoute(getCurrentRoute()));
   $("#loginForm").addEventListener("submit", handleLogin);
-  $("#createAccountButton").addEventListener("click", handleCreateAccount);
+  $("#createAccountButton").addEventListener("click", showCreateAccountCredentials);
   $("#logoutButton").addEventListener("click", handleLogout);
   $("#productForm").addEventListener("submit", handleProductSubmit);
   $("#purchaseForm").addEventListener("submit", handlePurchaseSubmit);
@@ -377,7 +432,14 @@ function bindEvents() {
   });
 }
 
-renderApp();
-bindEvents();
-setRoute(location.hash.replace("#", "") || "dashboard");
-checkSession();
+async function init() {
+  await mountScreens();
+  renderApp();
+  bindEvents();
+  setRoute(normalizeRoutePath());
+  await checkSession();
+}
+
+init().catch((error) => {
+  showToast(error.message);
+});

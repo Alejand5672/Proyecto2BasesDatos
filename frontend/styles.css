@@ -1,6 +1,6 @@
 :root {
   color-scheme: light;
-  --bg: #f4f6f5;
+  --bg: #f3f6f4;
   --surface: #ffffff;
   --surface-muted: #eef2f0;
   --ink: #18211f;
@@ -15,7 +15,8 @@
   --danger-soft: #ffe5e8;
   --success: #237b4b;
   --success-soft: #e3f4ea;
-  --shadow: 0 16px 40px rgba(24, 33, 31, 0.08);
+  --shadow: 0 14px 34px rgba(24, 33, 31, 0.07);
+  --shadow-soft: 0 8px 18px rgba(24, 33, 31, 0.05);
   --radius: 8px;
   font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
@@ -32,7 +33,7 @@ body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
-  background: var(--bg);
+  background: linear-gradient(180deg, #f7faf8 0%, var(--bg) 220px);
   color: var(--ink);
 }
 
@@ -49,12 +50,14 @@ body.authenticated .login-screen {
   display: grid;
   place-items: center;
   padding: 22px;
-  background: var(--bg);
+  background:
+    radial-gradient(circle at 50% 0%, rgba(22, 110, 99, 0.12), transparent 34%),
+    var(--bg);
 }
 
 .login-panel {
   width: min(420px, 100%);
-  padding: 24px;
+  padding: 28px;
   border: 1px solid var(--line);
   border-radius: var(--radius);
   background: var(--surface);
@@ -69,6 +72,10 @@ body.authenticated .login-screen {
 
 .login-panel .brand-mark {
   margin-bottom: 8px;
+}
+
+.login-panel .primary-button {
+  width: 100%;
 }
 
 button,
@@ -88,7 +95,7 @@ a {
 
 .app-shell {
   display: grid;
-  grid-template-columns: 280px minmax(0, 1fr);
+  grid-template-columns: 260px minmax(0, 1fr);
   min-height: 100vh;
 }
 
@@ -96,10 +103,10 @@ a {
   position: sticky;
   top: 0;
   height: 100vh;
-  padding: 22px;
+  padding: 20px;
   display: flex;
   flex-direction: column;
-  gap: 28px;
+  gap: 24px;
   background: #16201e;
   color: #f7fbf9;
 }
@@ -142,14 +149,14 @@ a {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 10px 12px;
+  padding: 10px;
   border-radius: var(--radius);
   color: #dbe5e2;
 }
 
 .nav-item:hover,
 .nav-item.active {
-  background: rgba(255, 255, 255, 0.11);
+  background: rgba(255, 255, 255, 0.12);
   color: #ffffff;
 }
 
@@ -184,15 +191,22 @@ a {
 
 .main {
   min-width: 0;
-  padding: 26px;
+  padding: 24px;
 }
 
 .topbar {
+  position: sticky;
+  top: 0;
+  z-index: 5;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 18px;
-  margin-bottom: 24px;
+  margin: -24px -24px 24px;
+  padding: 20px 24px;
+  background: rgba(247, 250, 248, 0.92);
+  border-bottom: 1px solid rgba(223, 230, 226, 0.72);
+  backdrop-filter: blur(10px);
 }
 
 .topbar h1 {
@@ -231,7 +245,7 @@ a {
   padding: 0 12px;
   border: 1px solid var(--line);
   border-radius: var(--radius);
-  background: var(--surface);
+  background: rgba(255, 255, 255, 0.9);
 }
 
 .search input {
@@ -278,6 +292,19 @@ a {
   background: var(--accent-strong);
 }
 
+.primary-button,
+.ghost-button,
+.chip,
+.tiny-button {
+  transition: background 140ms ease, border-color 140ms ease, transform 140ms ease;
+}
+
+.primary-button:hover,
+.ghost-button:hover,
+.tiny-button:hover {
+  transform: translateY(-1px);
+}
+
 .ghost-button,
 .icon-button,
 .chip {
@@ -316,7 +343,7 @@ a {
 .metrics-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 14px;
+  gap: 16px;
 }
 
 .metric-card,
@@ -329,7 +356,7 @@ a {
 }
 
 .metric-card {
-  padding: 18px;
+  padding: 20px;
 }
 
 .metric-card strong {
@@ -355,11 +382,15 @@ a {
 .split-layout {
   display: grid;
   grid-template-columns: minmax(0, 1.4fr) minmax(320px, 0.6fr);
-  gap: 18px;
+  gap: 20px;
+}
+
+.sales-panel {
+  padding: 24px;
 }
 
 .panel {
-  padding: 18px;
+  padding: 20px;
   min-width: 0;
 }
 
@@ -368,7 +399,7 @@ a {
   justify-content: space-between;
   align-items: flex-start;
   gap: 16px;
-  margin-bottom: 16px;
+  margin-bottom: 18px;
 }
 
 .panel-badge {
@@ -389,7 +420,7 @@ a {
 }
 
 .panel h2 {
-  font-size: 20px;
+  font-size: 19px;
 }
 
 .report-card h3 {
@@ -398,37 +429,65 @@ a {
 
 .bar-chart {
   display: grid;
-  gap: 14px;
+  gap: 17px;
+  padding-top: 6px;
 }
 
-.bar-chart div {
+.sales-category-row {
   display: grid;
-  grid-template-columns: 110px minmax(0, 1fr) 84px;
+  grid-template-columns: minmax(118px, 0.22fr) minmax(180px, 1fr) minmax(112px, auto);
   align-items: center;
-  gap: 10px;
+  gap: 18px;
 }
 
-.bar-chart div::before {
-  content: "";
-  height: 12px;
-  width: calc(var(--value) * 1%);
-  min-width: 20px;
-  grid-column: 2;
-  grid-row: 1;
-  border-radius: 999px;
-  background: linear-gradient(90deg, #166e63, #88c9a6);
-}
-
-.bar-chart span {
-  grid-column: 1;
-  grid-row: 1;
+.sales-category-name {
+  min-width: 0;
   color: var(--muted);
+  font-size: 18px;
+  line-height: 1.2;
 }
 
-.bar-chart strong {
-  grid-column: 3;
-  grid-row: 1;
+.sales-category-track {
+  position: relative;
+  height: 15px;
+  border-radius: 999px;
+  background: #edf3f0;
+  overflow: hidden;
+}
+
+.sales-category-bar {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: max(22px, calc(var(--value) * 1%));
+  border-radius: inherit;
+  background: linear-gradient(90deg, #147466, #8ecaaa);
+}
+
+.sales-category-row.empty .sales-category-bar {
+  width: 0;
+}
+
+.sales-category-total {
+  color: #07100e;
+  font-size: 18px;
+  line-height: 1.1;
   text-align: right;
+  white-space: nowrap;
+}
+
+.sales-category-summary {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 8px;
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+  color: var(--muted);
+  font-weight: 800;
+}
+
+.sales-category-summary strong {
+  color: var(--ink);
 }
 
 .activity-list {
@@ -501,13 +560,17 @@ td {
 
 th {
   color: var(--muted);
-  font-size: 12px;
+  font-size: 11px;
   text-transform: uppercase;
   letter-spacing: 0.06em;
 }
 
 td {
   font-size: 14px;
+}
+
+tbody tr:hover td {
+  background: #f8fbfa;
 }
 
 tr:last-child td {
@@ -601,11 +664,12 @@ select:focus {
 .report-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 12px;
+  gap: 14px;
 }
 
 .report-sections {
   display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 18px;
 }
 
@@ -617,7 +681,7 @@ select:focus {
 
 .report-card {
   padding: 16px;
-  box-shadow: none;
+  box-shadow: var(--shadow-soft);
 }
 
 .report-tag {
@@ -629,12 +693,12 @@ select:focus {
 
 .supplier-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
   gap: 12px;
 }
 
 .supplier-card {
-  padding: 14px;
+  padding: 16px;
   border: 1px solid var(--line);
   border-radius: var(--radius);
   background: var(--surface-muted);
@@ -681,6 +745,7 @@ body.sidebar-open .sidebar {
   }
 
   .dashboard-grid,
+  .report-sections,
   .split-layout {
     grid-template-columns: 1fr;
   }
@@ -701,6 +766,11 @@ body.sidebar-open .sidebar {
 
   .main {
     padding: 18px;
+  }
+
+  .topbar {
+    margin: -18px -18px 18px;
+    padding: 14px 18px;
   }
 
   .menu-button {
@@ -739,21 +809,26 @@ body.sidebar-open .sidebar {
     padding: 14px;
   }
 
-  .bar-chart div {
-    grid-template-columns: 1fr 76px;
+  .sales-panel {
+    padding: 16px;
   }
 
-  .bar-chart span {
+  .sales-category-row {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 8px 12px;
+  }
+
+  .sales-category-name {
     grid-column: 1 / -1;
+    font-size: 16px;
   }
 
-  .bar-chart div::before {
+  .sales-category-track {
     grid-column: 1;
-    grid-row: 2;
   }
 
-  .bar-chart strong {
+  .sales-category-total {
     grid-column: 2;
-    grid-row: 2;
+    font-size: 16px;
   }
 }
