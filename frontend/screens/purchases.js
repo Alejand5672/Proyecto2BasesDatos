@@ -1,4 +1,8 @@
-export function renderPurchases({ state, money, $ }) {
+export function renderPurchases({ state, money, $, canManagePurchases }) {
+  const canManage = canManagePurchases();
+  $("#newPurchaseButton").hidden = !canManage;
+  $("#purchaseForm").closest(".form-panel").hidden = !canManage;
+
   $("#purchaseRows").innerHTML = state.purchases
     .map((purchase) => {
       const total = purchase.total || purchase.quantity * purchase.price;
@@ -12,10 +16,14 @@ export function renderPurchases({ state, money, $ }) {
           <td>${purchase.employee}</td>
           <td>${money(total)}</td>
           <td>
-            <div class="row-actions">
-              <button class="tiny-button" type="button" data-edit-purchase="${purchase.id}">Editar</button>
-              <button class="tiny-button delete" type="button" data-delete-purchase="${purchase.id}">Eliminar</button>
-            </div>
+            ${
+              canManage
+                ? `<div class="row-actions">
+                    <button class="tiny-button" type="button" data-edit-purchase="${purchase.id}">Editar</button>
+                    <button class="tiny-button delete" type="button" data-delete-purchase="${purchase.id}">Eliminar</button>
+                  </div>`
+                : '<span class="pill neutral">Solo lectura</span>'
+            }
           </td>
         </tr>
       `;

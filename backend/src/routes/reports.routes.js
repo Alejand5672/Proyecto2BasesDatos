@@ -1,11 +1,11 @@
 import { Router } from "express";
 import { query } from "../db.js";
-import { asyncRoute } from "../middleware.js";
+import { asyncRoute, requireRole } from "../middleware.js";
 import { sql } from "../queries.js";
 
 export const reportRoutes = Router();
 
-reportRoutes.get("/", asyncRoute(async (_req, res) => {
+reportRoutes.get("/", requireRole("administrador", "reportes", "auditor"), asyncRoute(async (_req, res) => {
   const [
     topProducts,
     topClients,

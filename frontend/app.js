@@ -44,6 +44,15 @@ const screenFiles = [
 ];
 const defaultRoute = "dashboard";
 const validRoutes = ["dashboard", "productos", "compras", "reportes", "proveedores"];
+const roleViews = {
+  administrador: validRoutes,
+  inventario: ["dashboard", "productos", "proveedores"],
+  ventas: ["dashboard", "compras"],
+  reportes: ["dashboard", "reportes"],
+  auditor: ["dashboard", "reportes", "proveedores"],
+};
+const manageProductRoles = ["administrador", "inventario"];
+const managePurchaseRoles = ["administrador", "ventas"];
 
 async function mountScreens() {
   const screens = await Promise.all(
@@ -96,6 +105,24 @@ async function api(path, options = {}) {
 function setAuthenticated(user) {
   state.user = user;
   document.body.classList.toggle("authenticated", Boolean(user));
+  updateNavigationAccess();
+}
+
+function getUserRole() {
+  return state.user?.role || "";
+}
+
+function canView(route) {
+  if (!state.user) return route === defaultRoute;
+  return (roleViews[getUserRole()] || [defaultRoute]).includes(route);
+}
+
+function canManageProducts() {
+  return manageProductRoles.includes(getUserRole());
+}
+
+function canManagePurchases() {
+  return managePurchaseRoles.includes(getUserRole());
 }
 
 function getCurrentRoute() {
@@ -120,13 +147,15 @@ async function loadData() {
   try {
     state.loading = true;
     renderApp();
+    const wantsReports = canView("reportes");
+    const wantsSuppliers = canView("proveedores");
     const [catalogs, products, purchases, dashboard, reports, suppliers] = await Promise.all([
       api("/api/catalogs"),
       api("/api/products"),
       api("/api/purchases"),
       api("/api/dashboard"),
-      api("/api/reports"),
-      api("/api/suppliers"),
+      wantsReports ? api("/api/reports") : Promise.resolve({ cards: [], sections: [] }),
+      wantsSuppliers ? api("/api/suppliers") : Promise.resolve([]),
     ]);
 
     state.categories = catalogs.categories;
@@ -180,6 +209,8 @@ function renderApp() {
     statusPill,
     getFilteredProducts,
     $,
+    canManageProducts,
+    canManagePurchases,
   };
 
   refreshFormOptions();
@@ -227,7 +258,12 @@ function clearPurchaseForm() {
 }
 
 function setRoute(route) {
-  const target = validRoutes.includes(route) ? route : defaultRoute;
+  let target = validRoutes.includes(route) ? route : defaultRoute;
+  if (!canView(target)) {
+    target = defaultRoute;
+    history.replaceState(null, "", getRoutePath(target));
+    showToast("Tu rol no tiene acceso a esa vista.");
+  }
   $$(".view").forEach((view) => view.classList.toggle("active", view.id === target));
   $$(".nav-item, .text-link, .brand").forEach((item) =>
     item.classList.toggle("active", item.dataset.nav === target)
@@ -235,6 +271,13 @@ function setRoute(route) {
   const activeView = $(`#${target}`);
   $("#pageTitle").textContent = activeView?.dataset.title || "Inicio";
   document.body.classList.remove("sidebar-open");
+}
+
+function updateNavigationAccess() {
+  $$(".nav-item, .text-link").forEach((item) => {
+    const route = item.dataset.nav;
+    item.hidden = route ? !canView(route) : false;
+  });
 }
 
 async function handleProductSubmit(event) {
@@ -360,7 +403,8 @@ function editPurchase(id) {
 }
 
 function showCreateAccountCredentials() {
-  $("#loginError").textContent = "Las credenciales son: usuario: proy2, contraseña: secret";
+  $("#loginError").textContent =
+    "Usuarios: proy3, inventario, ventas, reportes, auditor. Contraseña para todos: secret";
 }
 
 function bindEvents() {
@@ -368,6 +412,10 @@ function bindEvents() {
     const navItem = event.target.closest("[data-nav]");
     if (navItem) {
       event.preventDefault();
+      if (!canView(navItem.dataset.nav)) {
+        showToast("Tu rol no tiene acceso a esa vista.");
+        return;
+      }
       history.pushState(null, "", getRoutePath(navItem.dataset.nav));
       setRoute(navItem.dataset.nav);
     }
@@ -436,8 +484,10 @@ async function init() {
   await mountScreens();
   renderApp();
   bindEvents();
-  setRoute(normalizeRoutePath());
   await checkSession();
+  if (!state.user) {
+    setRoute(normalizeRoutePath());
+  }
 }
 
 init().catch((error) => {

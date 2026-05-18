@@ -53,9 +53,9 @@ Copy-Item .env.example .env
 Las credenciales requeridas para la calificacion ya estan definidas en `.env.example`:
 
 ```env
-DB_USER=proy2
+DB_USER=proy3
 DB_PASSWORD=secret
-APP_LOGIN_USER=proy2
+APP_LOGIN_USER=proy3
 APP_LOGIN_PASSWORD=secret
 ```
 
@@ -103,11 +103,21 @@ docker compose up --build
 La base de datos se inicializa con un usuario para entrar a la aplicacion web:
 
 ```text
-Usuario: proy2
+Usuario: proy3
 Contrasena: secret
 ```
 
-En la pantalla de login tambien aparece el boton `Crear cuenta`, que muestra esas credenciales para facilitar la prueba del proyecto.
+Para Proyecto 3 tambien se incluyen usuarios de prueba por rol:
+
+```text
+proy3 / secret       -> administrador
+inventario / secret  -> inventario
+ventas / secret      -> ventas
+reportes / secret    -> reportes
+auditor / secret     -> auditor
+```
+
+El esquema de roles, tablas accesibles y operaciones permitidas esta documentado en `docs/roles.md`.
 
 ## Acceso a pgAdmin
 
@@ -120,7 +130,7 @@ http://localhost:5050
 Credenciales de pgAdmin:
 
 ```text
-Correo: proy2@proyecto.com
+Correo: proy3@proyecto.com
 Contrasena: secret
 ```
 
@@ -131,7 +141,7 @@ Name: proyecto2bd
 Host: db
 Port: 5432
 Maintenance database: proyecto2bd
-Username: proy2
+Username: proy3
 Password: secret
 ```
 
@@ -141,11 +151,11 @@ Nota: al ejecutar doccker compose down -v se borra el volumen de pgAdmin y pierd
 
 PostgreSQL carga automaticamente los scripts montados en `docker-compose.yml`:
 
-- `db/init/00_create_user.sh`: crea el usuario de base de datos `proy2`.
+- `db/init/00_create_user.sh`: crea el usuario de base de datos `proy3`.
 - `avacnesproyecto2.sql`: crea tablas, relaciones, indices y datos iniciales.
 - `db/extras.sql`: crea la vista `vista_top_productos_vendidos`.
 - `db/init/03_auth.sh`: crea la tabla de autenticacion `app_usuario`.
-- `db/init/99_permissions.sh`: asigna permisos al usuario `proy2`.
+- `db/init/99_permissions.sh`: asigna permisos al usuario `proy3`.
 
 El script principal contiene las entidades:
 

@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { pool, query } from "../db.js";
-import { asyncRoute } from "../middleware.js";
+import { asyncRoute, requireRole } from "../middleware.js";
 import { sql } from "../queries.js";
 
 export const purchaseRoutes = Router();
@@ -9,7 +9,7 @@ purchaseRoutes.get("/", asyncRoute(async (_req, res) => {
   res.json(await query(sql.purchases));
 }));
 
-purchaseRoutes.post("/", asyncRoute(async (req, res) => {
+purchaseRoutes.post("/", requireRole("administrador", "ventas"), asyncRoute(async (req, res) => {
   const { clientId, employeeId, productId, quantity, price } = req.body;
   const client = await pool.connect();
 
@@ -71,7 +71,7 @@ purchaseRoutes.post("/", asyncRoute(async (req, res) => {
   }
 }));
 
-purchaseRoutes.put("/:id", asyncRoute(async (req, res) => {
+purchaseRoutes.put("/:id", requireRole("administrador", "ventas"), asyncRoute(async (req, res) => {
   const { clientId, employeeId, productId, quantity, price } = req.body;
   const client = await pool.connect();
 
@@ -156,7 +156,7 @@ purchaseRoutes.put("/:id", asyncRoute(async (req, res) => {
   }
 }));
 
-purchaseRoutes.delete("/:id", asyncRoute(async (req, res) => {
+purchaseRoutes.delete("/:id", requireRole("administrador", "ventas"), asyncRoute(async (req, res) => {
   const client = await pool.connect();
 
   try {

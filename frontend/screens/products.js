@@ -1,4 +1,8 @@
-export function renderProducts({ getFilteredProducts, money, $ }) {
+export function renderProducts({ getFilteredProducts, money, $, canManageProducts }) {
+  const canManage = canManageProducts();
+  $("#newProductButton").hidden = !canManage;
+  $("#productFormPanel").hidden = !canManage;
+
   const rows = getFilteredProducts()
     .map(
       (product) => `
@@ -11,10 +15,14 @@ export function renderProducts({ getFilteredProducts, money, $ }) {
           <td>${money(product.buyPrice)}</td>
           <td>${money(product.price)}</td>
           <td>
-            <div class="row-actions">
-              <button class="tiny-button" type="button" data-edit-product="${product.id}">Editar</button>
-              <button class="tiny-button delete" type="button" data-delete-product="${product.id}">Eliminar</button>
-            </div>
+            ${
+              canManage
+                ? `<div class="row-actions">
+                    <button class="tiny-button" type="button" data-edit-product="${product.id}">Editar</button>
+                    <button class="tiny-button delete" type="button" data-delete-product="${product.id}">Eliminar</button>
+                  </div>`
+                : '<span class="pill neutral">Solo lectura</span>'
+            }
           </td>
         </tr>
       `

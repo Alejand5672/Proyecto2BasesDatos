@@ -22,7 +22,12 @@ authRoutes.post("/auth/login", asyncRoute(async (req, res) => {
 
   const rows = await query(
     `
-      select id_usuario as id, nombre, usuario
+      select
+        id_usuario as id,
+        nombre,
+        usuario,
+        rol as role,
+        db_role as "dbRole"
       from app_usuario
       where usuario = $1 and password_hash = $2
     `,
