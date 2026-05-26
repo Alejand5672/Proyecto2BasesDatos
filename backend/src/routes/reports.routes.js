@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { query } from "../db.js";
 import { asyncRoute, requireRole } from "../middleware.js";
+import { callCursorProcedure } from "../procedures.js";
 import { sql } from "../queries.js";
 
 export const reportRoutes = Router();
@@ -17,7 +18,7 @@ reportRoutes.get("/", requireRole("administrador", "reportes", "auditor"), async
     productsWithSalesExists,
     salesByCategoryHaving,
   ] = await Promise.all([
-    query(sql.topProductsFromView),
+    callCursorProcedure("sp_reporte_top_productos"),
     query(sql.topClientsCte),
     query("select count(*)::int as total from proveedor"),
     query(sql.joinProductSales),
