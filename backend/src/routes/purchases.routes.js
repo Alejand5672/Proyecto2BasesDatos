@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { pool, query } from "../db.js";
 import { asyncRoute, requireRole } from "../middleware.js";
+import { validatePurchaseStock } from "../procedures.js";
 import { sql } from "../queries.js";
 
 export const purchaseRoutes = Router();
@@ -11,6 +12,11 @@ purchaseRoutes.get("/", asyncRoute(async (_req, res) => {
 
 purchaseRoutes.post("/", requireRole("administrador", "ventas"), asyncRoute(async (req, res) => {
   const { clientId, employeeId, productId, quantity, price } = req.body;
+  const stockValidation = await validatePurchaseStock(productId, quantity);
+  if (!stockValidation.available) {
+    return res.status(400).json({ message: stockValidation.message });
+  }
+
   const client = await pool.connect();
 
   try {

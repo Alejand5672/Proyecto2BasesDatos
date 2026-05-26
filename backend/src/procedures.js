@@ -25,3 +25,16 @@ export async function callCursorProcedure(name) {
     client.release();
   }
 }
+
+export async function validatePurchaseStock(productId, quantity) {
+  const result = await pool.query("CALL sp_validar_stock_compra($1, $2, null, null, null)", [
+    productId,
+    quantity,
+  ]);
+
+  return {
+    available: result.rows[0].p_disponible,
+    currentStock: Number(result.rows[0].p_stock_actual || 0),
+    message: result.rows[0].p_mensaje,
+  };
+}

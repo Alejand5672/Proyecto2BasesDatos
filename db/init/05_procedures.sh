@@ -88,9 +88,52 @@ begin
 end;
 \$\$;
 
+create or replace procedure sp_validar_stock_compra(
+  in p_id_producto int,
+  in p_cantidad int,
+  out p_disponible boolean,
+  out p_stock_actual int,
+  out p_mensaje text
+)
+language plpgsql
+as \$\$
+begin
+  if p_cantidad is null or p_cantidad <= 0 then
+    raise exception 'La cantidad debe ser mayor a cero.';
+  end if;
+
+  select stock
+  into p_stock_actual
+  from producto
+  where id_producto = p_id_producto;
+
+  if p_stock_actual is null then
+    raise exception 'Producto no encontrado.';
+  end if;
+
+  p_disponible := p_stock_actual >= p_cantidad;
+
+  if p_disponible then
+    p_mensaje := 'Stock disponible para completar la compra.';
+  else
+    p_mensaje := format(
+      'No hay stock suficiente. Disponible: %s, solicitado: %s.',
+      p_stock_actual,
+      p_cantidad
+    );
+  end if;
+exception
+  when others then
+    p_disponible := false;
+    p_stock_actual := coalesce(p_stock_actual, 0);
+    p_mensaje := sqlerrm;
+end;
+\$\$;
+
 grant execute on procedure sp_dashboard_totales(refcursor) to ${DB_USER};
 grant execute on procedure sp_dashboard_ventas_categoria(refcursor) to ${DB_USER};
 grant execute on procedure sp_dashboard_stock_bajo(refcursor) to ${DB_USER};
 grant execute on procedure sp_dashboard_movimientos(refcursor) to ${DB_USER};
 grant execute on procedure sp_reporte_top_productos(refcursor) to ${DB_USER};
+grant execute on procedure sp_validar_stock_compra(int, int) to ${DB_USER};
 SQL
