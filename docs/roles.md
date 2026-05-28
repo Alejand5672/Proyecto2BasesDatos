@@ -1,10 +1,10 @@
 # Esquema de roles - Proyecto 3
 
-Los roles existen en PostgreSQL y se crean durante la inicializacion del contenedor de base de datos en `db/init/04_roles.sh`. Cada usuario de prueba esta registrado en la tabla `app_usuario` con un rol de aplicacion y un rol equivalente del DBMS.
+Los roles existen en postgreSQL y se crean durante la inicializacion del contenedor de base de datos en `db/init/04_roles.sh`. Cada usuario de prueba esta registrado en la tabla `app_usuario` con un rol de aplicacion y un rol equivalente de la base.
 
 ## Usuarios de prueba
 
-| Usuario | Contrasena | Rol de aplicacion | Rol en PostgreSQL |
+| Usuario | Contraseña | Rol de aplicacion | Rol en PostgreSQL |
 | --- | --- | --- | --- |
 | `proy3` | `secret` | `administrador` | `rol_tienda_admin` |
 | `inventario` | `secret` | `inventario` | `rol_tienda_inventario` |

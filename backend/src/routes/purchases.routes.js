@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { pool, query } from "../db.js";
 import { asyncRoute, requireRole } from "../middleware.js";
-import { validatePurchaseStock } from "../procedures.js";
+import { registerPurchaseWithProcedure, validatePurchaseStock } from "../procedures.js";
 import { sql } from "../queries.js";
 
 export const purchaseRoutes = Router();
@@ -13,68 +13,31 @@ purchaseRoutes.get("/", asyncRoute(async (_req, res) => {
 purchaseRoutes.post("/", requireRole("administrador", "ventas"), asyncRoute(async (req, res) => {
   const { clientId, employeeId, productId, quantity, price } = req.body;
   const stockValidation = await validatePurchaseStock(productId, quantity);
+
   if (!stockValidation.available) {
-    return res.status(400).json({ message: stockValidation.message });
-  }
-
-  const client = await pool.connect();
-
-  try {
-    await client.query("BEGIN");
-
-    const productResult = await client.query(
-      "select stock from producto where id_producto = $1 for update",
-      [productId]
-    );
-
-    if (productResult.rowCount === 0) {
-      throw new Error("Producto no encontrado.");
-    }
-
-    if (Number(productResult.rows[0].stock) < Number(quantity)) {
-      throw new Error("No hay stock suficiente para completar la compra.");
-    }
-
-    const purchaseResult = await client.query(
-      `
-        insert into compra (id_compra, fecha, id_cliente, id_empleado)
-        values ((select coalesce(max(id_compra), 0) + 1 from compra), current_date, $1, $2)
-        returning id_compra
-      `,
-      [clientId, employeeId]
-    );
-
-    const purchaseId = purchaseResult.rows[0].id_compra;
-
-    await client.query(
-      `
-        insert into detalle_compra (id_detalle, cantidad, precio_venta, id_compra, id_producto)
-        values ((select coalesce(max(id_detalle), 0) + 1 from detalle_compra), $1, $2, $3, $4)
-      `,
-      [quantity, price, purchaseId, productId]
-    );
-
-    await client.query("update producto set stock = stock - $1 where id_producto = $2", [
-      quantity,
+    const failedPurchase = await registerPurchaseWithProcedure({
+      clientId,
+      employeeId,
       productId,
-    ]);
-
-    await client.query(
-      `
-        insert into historial_stock (id_historial, tipo_movimiento, cantidad, descripcion, fecha, id_producto)
-        values ((select coalesce(max(id_historial), 0) + 1 from historial_stock), 'salida', $1, 'Venta registrada', current_date, $2)
-      `,
-      [quantity, productId]
-    );
-
-    await client.query("COMMIT");
-    res.status(201).json({ id: purchaseId });
-  } catch (error) {
-    await client.query("ROLLBACK");
-    res.status(400).json({ message: error.message });
-  } finally {
-    client.release();
+      quantity,
+      price,
+    });
+    return res.status(400).json({ message: failedPurchase.message || stockValidation.message });
   }
+
+  const purchase = await registerPurchaseWithProcedure({
+    clientId,
+    employeeId,
+    productId,
+    quantity,
+    price,
+  });
+
+  if (!purchase.ok) {
+    return res.status(400).json({ message: purchase.message });
+  }
+
+  res.status(201).json({ id: purchase.id });
 }));
 
 purchaseRoutes.put("/:id", requireRole("administrador", "ventas"), asyncRoute(async (req, res) => {

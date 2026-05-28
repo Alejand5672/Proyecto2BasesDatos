@@ -38,3 +38,16 @@ export async function validatePurchaseStock(productId, quantity) {
     message: result.rows[0].p_mensaje,
   };
 }
+
+export async function registerPurchaseWithProcedure({ clientId, employeeId, productId, quantity, price }) {
+  const result = await pool.query(
+    "CALL sp_registrar_compra($1, $2, $3, $4, $5, null, null, null)",
+    [clientId, employeeId, productId, quantity, price]
+  );
+
+  return {
+    ok: result.rows[0].p_ok,
+    id: result.rows[0].p_id_compra,
+    message: result.rows[0].p_mensaje,
+  };
+}
