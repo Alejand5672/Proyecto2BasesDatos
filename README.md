@@ -1,7 +1,7 @@
 # Luis Alejandro Hernández Márquez (241424)
 # Bases de datos 1
 # Prof. Mario Barrientos
-# Proyecto 2 - Base de Datos 1
+# Proyecto 3 - Base de Datos 1
 
 Aplicacion web para gestionar inventario, compras/ventas, proveedores y reportes de una tienda. El proyecto usa frontend con HTML, CSS y JavaScript, backend con Node.js/Express y base de datos PostgreSQL. Toda la infraestructura se levanta con Docker Compose.
 
@@ -64,7 +64,7 @@ APP_LOGIN_PASSWORD=secret
 Desde la raiz del proyecto ejecuta:
 
 ```bash
-docker compose up --build
+docker compose up -d --build
 ```
 
 Esto levanta los servicios definidos en `docker-compose.yml`:
@@ -85,7 +85,21 @@ Para reiniciar todo desde cero, incluyendo los volumenes de PostgreSQL y pgAdmin
 
 ```bash
 docker compose down -v
-docker compose up --build
+docker compose up -d --build
+```
+
+Para verificar que todo quedo levantado:
+
+```bash
+docker compose ps
+```
+
+Debe aparecer algo similar a:
+
+```text
+backend  -> 0.0.0.0:3000->3000/tcp
+db       -> 0.0.0.0:5432->5432/tcp
+pgadmin  -> 0.0.0.0:5050->80/tcp
 ```
 
 ## URLs del proyecto
@@ -145,7 +159,6 @@ Username: proy3
 Password: secret
 ```
 
-Nota: al ejecutar doccker compose down -v se borra el volumen de pgAdmin y pierde el servidor registrado manualmente. ente.
 
 ## Base de datos
 
