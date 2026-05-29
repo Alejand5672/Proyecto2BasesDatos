@@ -148,6 +148,8 @@ Correo: proy3@proyecto.com
 Contrasena: secret
 ```
 
+Importante: pgAdmin pide un correo para iniciar sesion. Para entrar a pgAdmin no se usa `proy3` solo, se usa el correo completo `proy3@proyecto.com`.
+
 Si el servidor no aparece registrado en pgAdmin, se puede crear manualmente con:
 
 ```text
@@ -158,6 +160,28 @@ Maintenance database: proyecto2bd
 Username: proy3
 Password: secret
 ```
+
+Nota: estas credenciales son para conectar pgAdmin con PostgreSQL, no para iniciar sesion en pgAdmin. Al registrar el servidor con `proy3 / secret`, pgAdmin debe conectarse directamente a la base correcta del proyecto: `proyecto2bd`.
+
+Si pgAdmin no abre en `http://localhost:5050`, primero revisa que el puerto aparezca publicado:
+
+```bash
+docker compose ps
+```
+
+El servicio `pgadmin` debe mostrar algo como:
+
+```text
+0.0.0.0:5050->80/tcp
+```
+
+Si aparece solo `80/tcp`, recrea unicamente pgAdmin sin borrar la base:
+
+```bash
+docker compose up -d --force-recreate pgadmin
+```
+
+Al ejecutar `docker compose down -v` se borran los volumenes de PostgreSQL y pgAdmin. Por eso pgAdmin pierde el servidor registrado manualmente y hay que crearlo otra vez.
 
 
 ## Base de datos
